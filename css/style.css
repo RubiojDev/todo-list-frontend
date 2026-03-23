@@ -1,0 +1,21 @@
+body {
+    background-color: #eef2f7;
+}
+
+.btn-small-personalised {
+    padding: 0.25rem 0.50rem !important;
+    min-height: auto;
+    line-height: 1;
+}
+
+.btn-small-personalised::after {
+    transform: scale(0.7);
+}
+
+.width-40 {
+    width: 40px;
+}
+
+.text-strike {
+  text-decoration: line-through;
+}
