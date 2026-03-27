@@ -1,7 +1,7 @@
 const BASE_URL = "http://localhost:8080/api"; //CAMBIAR POS VARIABLE DE ENTORNO
 
 export async function apiRequest(endpoint, method = "GET", data = null, requiresAuth = true) {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("tokenTodoList");
 
     const options = {
         method,

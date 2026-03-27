@@ -9,8 +9,58 @@ import {
     printConsoleError, 
     showModalRegister } from "./ui.js";
 
-export function initLogin() {
-    console.log("Login");
+export async function initLogin() {
+    
+
+    const form = document.getElementById("loginForm");
+
+    const inputEmail = form.loginEmail;
+    const messageEmail = "Por favor, ingrese un email válido.";
+    
+    const inputPassword = form.loginPassword;
+    const messagePassword = "La contraseña debe tener al menos 6 caracteres.";
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        let isValidForm = true;
+
+        const email = inputEmail.value.trim();
+        const password = inputPassword.value.trim();
+
+        cleanFormError();
+
+        isValidForm = validateField(inputEmail, !isValidEmail(inputEmail), messageEmail) && isValidForm;
+        isValidForm = validateField(inputPassword, password.length < 6, messagePassword) && isValidForm;
+
+        if (isValidForm) {
+
+            disableInput(form.btnLogin);
+            try {
+                const userData = {
+                    email,
+                    password
+                };
+    
+                const response = await apiRequest("/auth/login", "POST", userData, false);
+    
+                localStorage.setItem("tokenTodoList", response.token);
+                localStorage.setItem("refreshTokenTodoList", response.refreshToken);
+    
+                window.location.replace("./tasks.html");
+
+            } catch (error) {
+                if (error.status === 401) {
+                    showFormError("Email o contraseña incorrectos");
+                } else {
+                    showFormError(error.message);
+                }
+                printConsoleError(error);
+            } finally {
+                enableInput(form.btnLogin);
+            }
+        }
+    });
 }
 
 export function initRegister() {
@@ -58,8 +108,8 @@ export function initRegister() {
                 };
                 const response = await apiRequest("/auth/register", "POST", userData, false);
 
-                localStorage.setItem("token", response.token);
-                localStorage.setItem("refreshToken", response.refreshToken);
+                localStorage.setItem("tokenTodoList", response.token);
+                localStorage.setItem("refreshTokenTodoList", response.refreshToken);
 
                 showModalRegister();
                 
@@ -70,24 +120,11 @@ export function initRegister() {
             } catch (error) {                
                 showFormError(error.message);
                 printConsoleError(error);
+            } finally {
                 enableInput(form.btnRegister);
             }
         }
     });
-
-    function isValidEmail(input) {
-        return input.checkValidity();
-    }
-
-    function validateField(input, condition, message) {
-        if (condition) {
-            showError(input, message);
-            return false;
-        } else {
-            clearError(input);
-            return true;
-        }
-    }
 
     function validateConfirmPassword(input, password, confirmPassword) {
         if (confirmPassword.length === 0) {
@@ -104,3 +141,17 @@ export function initRegister() {
         return true;
     }
 }
+
+function isValidEmail(input) {
+        return input.checkValidity();
+    }
+
+function validateField(input, condition, message) {
+        if (condition) {
+            showError(input, message);
+            return false;
+        } else {
+            clearError(input);
+            return true;
+        }
+    }

@@ -29,15 +29,19 @@
             <div class="col-md-4">
                 <div class="card shadow-sm p-4">
 
-                    <form id="inicioForm">
-                        <h3 class="text-center mb-4">Inicio de Sesión</h3>
+                    <h3 class="text-center mb-4">Inicio de Sesión</h3>
+                    
+                    <form class="needs-validation" id="loginForm" novalidate>
+
+                        <div id="formError" class="alert alert-danger py-2 d-none"></div>
 
                         <div class="mb-3">
                             <label for="loginEmail" class="form-label">
                                 <i class="bi bi-envelope-at"></i>
                                 Email
                             </label>
-                            <input type="email" class="form-control" id="loginEmail" placeholder="Ingrese su email" required>
+                            <input type="email" class="form-control" id="loginEmail" name="loginEmail" placeholder="Ingrese su email" required>
+                            <div id="emailError" class="invalid-feedback"></div>
                         </div>
                         
                         <div class="mb-3">
@@ -45,7 +49,8 @@
                                 <i class="bi bi-lock"></i>
                                 Contraseña
                             </label>
-                            <input type="password" class="form-control" id="loginPassword" required>
+                            <input type="password" class="form-control" id="loginPassword" name="loginPassword" placeholder="Ingrese su contraseña" required>
+                            <div id="passwordError" class="invalid-feedback"></div>
                         </div>
 
                         <div class="text-center mb-3">
@@ -53,7 +58,7 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                            <button type="submit" class="btn btn-primary" id="btnLogin" name="btnLogin">Iniciar Sesión</button>
                         </div>
 
                     </form>

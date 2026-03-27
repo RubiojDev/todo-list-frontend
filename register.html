@@ -40,7 +40,7 @@
                                 <i class="bi bi-person"></i>
                                 Nombre de Usuario
                             </label>
-                            <input type="text" class="form-control" id="registerUsername" placeholder="Ingrese un nombre de usuario" required>
+                            <input type="text" class="form-control" id="registerUsername" name="registerUsername" placeholder="Ingrese un nombre de usuario" required>
                             <div id="usernameError" class="invalid-feedback"></div>
                         </div>
 
@@ -49,7 +49,7 @@
                                 <i class="bi bi-envelope-at"></i>
                                 Email
                             </label>
-                            <input type="email" class="form-control" id="registerEmail" placeholder="Ingrese su email" required>
+                            <input type="email" class="form-control" id="registerEmail" name="registerEmail" placeholder="Ingrese su email" required>
                             <div id="emailError" class="invalid-feedback"></div>
                         </div>
                         
@@ -58,7 +58,7 @@
                                 <i class="bi bi-lock"></i>
                                 Contraseña
                             </label>
-                            <input type="password" class="form-control" id="registerPassword" placeholder="Ingrese una contraseña" required>
+                            <input type="password" class="form-control" id="registerPassword" name="registerPassword" placeholder="Ingrese una contraseña" required>
                             <div id="passwordError" class="invalid-feedback"></div>
                         </div>
 
@@ -67,7 +67,7 @@
                                 <i class="bi bi-lock"></i>
                                 Confirmar contraseña
                             </label>
-                            <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Reingrese la contraseña" required>
+                            <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Reingrese la contraseña" name="registerConfirmPassword" required>
                             <div id="confirmPasswordError" class="invalid-feedback"></div>
                         </div>
 
@@ -76,7 +76,7 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary" id="btnRegister">Registrarse</button>
+                            <button type="submit" class="btn btn-primary" id="btnRegister" name="btnRegister">Registrarse</button>
                         </div>
 
                     </form>
