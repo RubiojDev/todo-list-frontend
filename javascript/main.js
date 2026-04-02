@@ -1,5 +1,5 @@
 import { initLogin, initRegister } from "./auth.js";
-//import { initTasks } from "./tasks.js";
+import { initTasks } from "./tasks.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const page = document.body.dataset.page;
@@ -8,6 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (page === "register") initRegister();
     
-    //if (page === "tasks") initTasks();
+    if (page === "tasks") initTasks();
 
 });

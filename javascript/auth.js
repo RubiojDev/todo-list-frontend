@@ -1,16 +1,25 @@
 import { apiRequest } from "./api.js";
+import { initAuth } from "./initAuth.js";
 import { 
     showError, 
     clearError, 
     enableInput,
     disableInput,
     showFormError, 
-    cleanFormError, 
+    cleanFormError,
+    showContentApp, 
     printConsoleError, 
     showModalRegister } from "./ui.js";
 
 export async function initLogin() {
     
+    
+    const isAuthenticated = await initAuth();
+    if (isAuthenticated) {
+        window.location.replace("./tasks.html");
+        return;
+    }
+    showContentApp();
 
     const form = document.getElementById("loginForm");
 
@@ -63,7 +72,15 @@ export async function initLogin() {
     });
 }
 
-export function initRegister() {
+export async function initRegister() {
+    
+    
+    const isAuthenticated = await initAuth();
+    if (isAuthenticated) {
+        window.location.replace("./tasks.html");
+        return;
+    }
+    showContentApp();
     
     const form = document.getElementById("registerForm");
     
