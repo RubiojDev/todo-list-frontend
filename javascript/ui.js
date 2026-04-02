@@ -80,7 +80,7 @@ export function openAccordion(accordionId) {
     bsCollapse.show();
 }
 
-export function createListTask(task, onLoadSubTasks, isNew = false) {
+export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = false) {
     const divAccordion = document.getElementById("accordionTask");
 
     const divAccordionItem = document.createElement("div");
@@ -112,7 +112,7 @@ export function createListTask(task, onLoadSubTasks, isNew = false) {
 
     const inputTask = document.createElement("input");
     inputTask.type = "text";
-    inputTask.id = task.id;
+    inputTask.id = "text-" + task.id;
     inputTask.value = task.name;
     inputTask.classList.add("form-control");
     if (task.completed) inputTask.classList.add("text-decoration-line-through");
@@ -169,7 +169,18 @@ export function createListTask(task, onLoadSubTasks, isNew = false) {
     const btnCompleteTask = document.createElement("button");
     btnCompleteTask.type = "button";
     btnCompleteTask.classList.add("btn", "btn-success");
+    //btnCompleteTask.id = "btnCompleteTask";
     btnCompleteTask.title = "Completado";
+
+    btnCompleteTask.addEventListener("click", async () => {
+        const isCompleted = inputTask.classList.contains("text-decoration-line-through");
+
+        const result = await onCompleteTask(task.id, !isCompleted);
+
+        if (result) {
+            inputTask.classList.toggle("text-decoration-line-through");
+        }
+    });
 
     const iconCompleteTask = document.createElement("i");
     iconCompleteTask.classList.add("bi", "bi-file-earmark-check");

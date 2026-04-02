@@ -16,17 +16,29 @@ export async function initTasks() {
     }
 
     showContentApp();
-    loadTasks();
+    loadTasks(0, 10);
 
-    async function loadTasks() {
-        clearListTask();
-        
+    async function loadTasks(page, size, search) {
         try {
-            const response = await apiRequest("/tasks", "GET");
+            let response;
+            if (search) {
+                response = await apiRequest(
+                        `/tasks/name?name=${search}&page=${page}&size=${size}`, 
+                        "GET"
+                    );
+            } else {
+                response = await apiRequest(
+                        `/tasks?page=${page}&size=${size}`, 
+                        "GET"
+                    );
+            }
+            clearListTask();
             
             for (let i = 0; i < response.content.length; i++) {
-                createListTask(response.content[i], loadSubTasks);
+                createListTask(response.content[i], loadSubTasks, completeTask);
+            
             }
+            
         } catch (error) {
             console.error("Error loading tasks:", error);//MODIFICAR PARA MOSTRAR ERROR EN UI
         }
@@ -45,7 +57,7 @@ export async function initTasks() {
                     { name: newTask }
                 );
 
-                createListTask(response, loadSubTasks, true);
+                createListTask(response, loadSubTasks, completeTask, true);
             } catch (error) {
                 console.log("ERROR");
             }
@@ -73,6 +85,20 @@ export async function initTasks() {
         }
     }
 
+    async function completeTask(taskId, completed) {
+        try {
+            await apiRequest(
+                `/tasks/${taskId}`,
+                "PATCH",
+                { completed }
+            );
+            return true;
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
+
     const inputSearch = document.getElementById("search");
     let timeout;
     inputSearch.addEventListener("input", () => {
@@ -82,22 +108,9 @@ export async function initTasks() {
             let search = inputSearch.value.toLowerCase().trim();
 
             if (search) {
-                try {
-                    const response = await apiRequest(
-                        `/tasks/name?name=${search}&page=0&size=10`, 
-                        "GET"
-                    );
-
-                    clearListTask();
-
-                    for (let i = 0; i < response.content.length; i++) {
-                        createListTask(response.content[i], loadSubTasks); 
-                    }
-                } catch(error) {
-                    console.error("ERROR");
-                }
+                loadTasks(0, 10, search);
             } else {
-                loadTasks();
+                loadTasks(0, 10);
             }
         }, 400);
     });
