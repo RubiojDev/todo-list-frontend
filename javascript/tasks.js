@@ -1,11 +1,11 @@
 import { apiRequest } from "./api.js";
 import { initAuth } from "./initAuth.js";
-import { showContentApp,
+import { hideModal,
     openAccordion, 
     clearListTask, 
+    showContentApp,
     createListTask,
-    createListSubTask,
-    hideModalNewSubTask } from "./ui.js";
+    createListSubTask } from "./ui.js";
 
 export async function initTasks() {
 
@@ -76,7 +76,7 @@ export async function initTasks() {
             } else {
                 container.innerHTML = "";
                 for (let i = 0; i < response.content.length; i++) {
-                    createListSubTask(container, response.content[i]);
+                    createListSubTask(container, taskId, response.content[i], completeSubTask);
                 }
             }
 
@@ -89,6 +89,20 @@ export async function initTasks() {
         try {
             await apiRequest(
                 `/tasks/${taskId}`,
+                "PATCH",
+                { completed }
+            );
+            return true;
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
+
+    async function completeSubTask(taskId, subtaskId, completed) {
+        try {
+            await apiRequest(
+                `/tasks/${taskId}/items/${subtaskId}`,
                 "PATCH",
                 { completed }
             );
@@ -134,13 +148,13 @@ export async function initTasks() {
                 );
                 
                 inputNewSubTask.value = "";
-                hideModalNewSubTask();
+                hideModal("newsubtask");
     
                 if (!container.children.length > 0) {
                     container.innerHTML = "";
                 }
 
-                createListSubTask(container, response);
+                createListSubTask(container, taskId, response, completeSubTask);
 
                 openAccordion(accordionId);
             } catch (error) {
@@ -149,6 +163,28 @@ export async function initTasks() {
         }
     });
 
+    const btnConfirmDeleteTask = document.getElementById("btnConfirmDeleteTask");
+    btnConfirmDeleteTask.addEventListener("click", async() => {
+
+        const taskId = btnConfirmDeleteTask.dataset.id;
+        
+        try {
+            await apiRequest(
+                `/tasks/${taskId}`, 
+                "DELETE"
+            );
+            hideModal("deletetask");
+            let search = inputSearch.value.toLowerCase().trim();
+
+            if (search) {
+                loadTasks(0, 10, search);
+            } else {
+                loadTasks(0, 10);
+            }
+
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
 }
-
-

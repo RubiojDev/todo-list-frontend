@@ -69,8 +69,14 @@ export function clearListTask() {
     document.getElementById("accordionTask").innerHTML = "";
 }
 
-export function hideModalNewSubTask() {
-    const modalEl = document.getElementById("newSubTaskModal");
+export function hideModal(nameModal) {
+    let modalEl;
+    if (nameModal === "newsubtask") {
+        modalEl = document.getElementById("newSubTaskModal");
+    } 
+    if (nameModal === "deletetask") {
+        modalEl = document.getElementById("confirmDeleteTask");
+    }
     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.hide();
 }
@@ -195,6 +201,16 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
     btnDeleteTask.setAttribute("data-bs-target", "#confirmDeleteTask");
     btnDeleteTask.title = "Eliminar";
 
+    btnDeleteTask.addEventListener("click", () => {
+        console.log("DELETE SUBTASK");
+        const btnConfirmDeleteTask = document.getElementById("btnConfirmDeleteTask");
+        const taskName = document.getElementById("taskNameModalDelete");
+        btnConfirmDeleteTask.setAttribute("data-id", task.id);
+        btnConfirmDeleteTask.setAttribute("data-cont-id", divAccordionBody.id);
+        btnConfirmDeleteTask.setAttribute("data-accordion-id", collapseId);
+        taskName.innerText = task.name;
+    });
+
     const iconDeleteTask = document.createElement("i");
     iconDeleteTask.classList.add("bi", "bi-file-earmark-x");
     
@@ -232,7 +248,7 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
     }
 }
 
-export function createListSubTask(container, subTask) {
+export function createListSubTask(container, taskId, subTask, onCompleteSubTask) {
     
     const divInputGroup = document.createElement("div");
     divInputGroup.classList.add("input-group", "mb-2");
@@ -249,6 +265,13 @@ export function createListSubTask(container, subTask) {
     inputText.value = subTask.name;
     inputText.classList.add("form-control");
     if (subTask.completed) inputText.classList.add("text-strike");
+    
+    inputCheckbox.addEventListener("change", async (e) => {
+        const result = await onCompleteSubTask(taskId, subTask.id, e.target.checked);
+        if (result) {
+            inputText.classList.toggle("text-strike");
+        }
+    });
 
     const btnDeleteSubTask = document.createElement("button");
     btnDeleteSubTask.type = "button";
