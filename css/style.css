@@ -25,3 +25,8 @@ h1 {
 .text-strike {
   text-decoration: line-through;
 }
+
+.accordion-body {
+    max-height: 250px;
+    overflow-y: auto;
+}

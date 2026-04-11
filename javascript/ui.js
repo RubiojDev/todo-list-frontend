@@ -1,5 +1,4 @@
 
-
 export function showError(input, message) {
     const errorDiv = input.nextElementSibling;
 
@@ -86,7 +85,7 @@ export function openAccordion(accordionId) {
     bsCollapse.show();
 }
 
-export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = false) {
+export function createListTask(task, onLoadSubTasks, onUpdateTask, isNew = false) {
     const divAccordion = document.getElementById("accordionTask");
 
     const divAccordionItem = document.createElement("div");
@@ -122,6 +121,27 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
     inputTask.value = task.name;
     inputTask.classList.add("form-control");
     if (task.completed) inputTask.classList.add("text-decoration-line-through");
+
+    let timeout;
+    let lastNameTask = task.name;
+    inputTask.addEventListener("input", () => {
+        clearTimeout(timeout);
+
+        timeout = setTimeout(async () => { 
+            let newNameTask = inputTask.value.trim();
+
+            if (newNameTask) {
+                onUpdateTask(task.id, newNameTask, null);
+                lastNameTask = newNameTask;
+            }
+        }, 600);
+    });
+
+    inputTask.addEventListener("blur", () => {
+        if (inputTask.value.trim() === "") {
+            inputTask.value = lastNameTask;
+        }
+    });
                 
     const btnCollapse = document.createElement("button");
     const collapseId = "collapse-task-" + task.id;
@@ -137,12 +157,16 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
 
     const divAccordionBody = document.createElement("div");
     divAccordionBody.id = "accordion-body-" + task.id;
-    divAccordionBody.classList.add("accordion-body");
+    divAccordionBody.classList.add("accordion-body", "text-center");
     
     divAccordionColapse.addEventListener("shown.bs.collapse", () => {
         divAccordionBody.innerHTML = "Cargando...";
         onLoadSubTasks(divAccordionBody, task.id);
+        
+        //createSentinel(divAccordionBody);
+///DSFFFFFFFFFFFFFFFFFFFFF
     });
+    
 
     divAccordionColapse.addEventListener("hidden.bs.collapse", () => {
         divAccordionBody.innerHTML = "";
@@ -164,6 +188,10 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
         btnSaveNewSubTask.setAttribute("data-id", task.id);
         btnSaveNewSubTask.setAttribute("data-cont-id", divAccordionBody.id);
         btnSaveNewSubTask.setAttribute("data-accordion-id", collapseId);
+        const i = document.getElementById("inputNewSubTask");
+        setTimeout(() => {
+            i.focus();
+        }, 300);
     });
 
     const iconNewSubTask = document.createElement("i");
@@ -181,8 +209,8 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
     btnCompleteTask.addEventListener("click", async () => {
         const isCompleted = inputTask.classList.contains("text-decoration-line-through");
 
-        const result = await onCompleteTask(task.id, !isCompleted);
-
+        const result = await onUpdateTask(task.id, null, !isCompleted);
+console.log("completed");
         if (result) {
             inputTask.classList.toggle("text-decoration-line-through");
         }
@@ -225,6 +253,7 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
     divContainerBtnNew.appendChild(btnNewSubTask);
 
     divAccordionColapse.appendChild(divAccordionBody);
+    
 
     divGroup.appendChild(badge);
     divGroup.appendChild(inputTask);
@@ -248,7 +277,7 @@ export function createListTask(task, onLoadSubTasks, onCompleteTask, isNew = fal
     }
 }
 
-export function createListSubTask(container, taskId, subTask, onCompleteSubTask) {
+export function createListSubTask(container, taskId, subTask, onUpdateSubTask, onDeleteSubTask, isLoadMore = false) {
     
     const divInputGroup = document.createElement("div");
     divInputGroup.classList.add("input-group", "mb-2");
@@ -260,16 +289,37 @@ export function createListSubTask(container, taskId, subTask, onCompleteSubTask)
     inputCheckbox.type = "checkbox";
     inputCheckbox.checked = subTask.completed;
     
-    const inputText = document.createElement("input");
-    inputText.type = "text";
-    inputText.value = subTask.name;
-    inputText.classList.add("form-control");
-    if (subTask.completed) inputText.classList.add("text-strike");
+    const inputSubTask = document.createElement("input");
+    inputSubTask.type = "text";
+    inputSubTask.value = subTask.name;
+    inputSubTask.classList.add("form-control");
+    if (subTask.completed) inputSubTask.classList.add("text-strike");
+
+    let timeout;
+    let lastNameSubTask = subTask.name;
+    inputSubTask.addEventListener("input", () => {
+        clearTimeout(timeout);
+
+        timeout = setTimeout(async () => { 
+            let newNameTask = inputSubTask.value.trim();
+
+            if (newNameTask) {
+                onUpdateSubTask(taskId, subTask.id, newNameTask, null);
+                lastNameSubTask = newNameTask;
+            }
+        }, 600);
+    });
+
+    inputSubTask.addEventListener("blur", () => {
+        if (inputSubTask.value.trim() === "") {
+            inputSubTask.value = lastNameSubTask;
+        }
+    });
     
     inputCheckbox.addEventListener("change", async (e) => {
-        const result = await onCompleteSubTask(taskId, subTask.id, e.target.checked);
+        const result = await onUpdateSubTask(taskId, subTask.id, null, e.target.checked);
         if (result) {
-            inputText.classList.toggle("text-strike");
+            inputSubTask.classList.toggle("text-strike");
         }
     });
 
@@ -278,11 +328,239 @@ export function createListSubTask(container, taskId, subTask, onCompleteSubTask)
     btnDeleteSubTask.classList.add("btn", "btn-danger");
     btnDeleteSubTask.textContent = "Eliminar";
 
+    btnDeleteSubTask.addEventListener("click", async () => {
+        const result = await onDeleteSubTask(taskId, subTask.id);
+        if (result) {
+            divInputGroup.remove();
+        }
+    });
+
     divContainerCheckbox.appendChild(inputCheckbox);
 
     divInputGroup.appendChild(divContainerCheckbox);
-    divInputGroup.appendChild(inputText);
+    divInputGroup.appendChild(inputSubTask);
     divInputGroup.appendChild(btnDeleteSubTask);
 
-    container.appendChild(divInputGroup);
+    if (isLoadMore) {
+        const loadMoreBtn = document.getElementById("moreSubTasksBtn-" + taskId);
+        container.insertBefore(divInputGroup, loadMoreBtn);
+    } else {
+        container.appendChild(divInputGroup);
+    }
+}
+
+
+
+export function createSentinel(container, taskId, onLoadMoreSubTasks, ) {
+    const moreSubTasksBtn = document.createElement("button");
+    moreSubTasksBtn.type = "button";
+    moreSubTasksBtn.id = ("moreSubTasksBtn-" + taskId);
+    moreSubTasksBtn.classList.add("btn", "btn-outline-primary", "btn-sm");
+    moreSubTasksBtn.innerHTML = "Ver mas...";
+    container.appendChild(moreSubTasksBtn);
+    //return moreSubTasksBtn;
+
+    moreSubTasksBtn.addEventListener("click", () => {
+        console.log("SI");
+        onLoadMoreSubTasks(container, taskId);
+    });
+
+}
+
+export function hideMoreSubTasksBtn(taskId) {
+    const moreSubTasksBtn = document.getElementById("moreSubTasksBtn-" + taskId);
+    moreSubTasksBtn.remove();
+}
+
+function createPreviousBtn(pageActive, onChangePage) {
+    const liPrevius = document.createElement("li");
+    liPrevius.classList.add("page-item");
+    const btnPrevius = document.createElement("button");
+    btnPrevius.classList.add("page-link");
+    btnPrevius.setAttribute("data-page", "previus");
+    btnPrevius.innerHTML = "Previus";
+
+    btnPrevius.addEventListener("click", () => {
+        console.log(pageActive - 1);
+        onChangePage(pageActive - 1);
+    });
+
+    liPrevius.appendChild(btnPrevius);
+    return liPrevius;
+}
+
+function createNextBtn(pageActive, onChangePage) {
+    const liNext = document.createElement("li");
+    liNext.classList.add("page-item");
+
+    const btnNext = document.createElement("button");
+    btnNext.classList.add("page-link");
+    btnNext.setAttribute("data-page", "next");
+    btnNext.innerHTML = "Next";
+
+    btnNext.addEventListener("click", () => {
+        console.log(pageActive + 1);
+        onChangePage(pageActive + 1);
+    });
+
+    liNext.appendChild(btnNext);
+    return liNext;
+}
+
+function createPageBtn(page, isActive = false, onChangePage) {
+    const liPage = document.createElement("li");
+    liPage.classList.add("page-item");
+
+    const btnPage = document.createElement("button");
+    btnPage.classList.add("page-link");
+    btnPage.setAttribute("data-page", page);
+    btnPage.innerHTML = page;
+    liPage.appendChild(btnPage);
+
+    btnPage.addEventListener("click", () => {
+        console.log(page - 1);
+        onChangePage(page - 1);
+    });
+
+    if (isActive) liPage.classList.add("active");
+
+    return liPage;
+}
+
+function createSpanDots() {
+    const liPage = document.createElement("li");
+    liPage.classList.add("page-item");
+
+    const spanDots = document.createElement("span");
+    spanDots.classList.add("page-link");
+    spanDots.innerHTML = "...";
+    liPage.appendChild(spanDots);
+
+    return liPage;
+}
+
+function paginationSmall(pageSize, pageActive, onChangePage) {
+    let array = [];
+    for (let i = 0; i < pageSize; i++) {
+        let isActive = false;
+        if (pageActive === i) {
+            isActive = true;
+        }
+        array.push(createPageBtn(i + 1, isActive, onChangePage));
+    }
+    return array;
+}
+
+function paginationInitial(pageSize, pageActive, onChangePage) {
+    let array = [];
+    let isActive = false;
+    for (let i = 0; i < 3; i++) {
+        if (pageActive === i) {
+            isActive = true;
+        }
+        array.push(createPageBtn(i + 1, isActive, onChangePage));
+        isActive = false;
+    }
+    array.push(createSpanDots());
+    array.push(createPageBtn(pageSize, isActive, onChangePage));
+    return array;
+}
+
+function paginationMiddle(pageSize, pageActive, onChangePage) {
+    let array = [];
+    let isActive = false;
+    array.push(createSpanDots());
+    for (let i = 2; i >= 0; i--) {
+        if (i === 0) {
+            isActive = true;
+        }
+        array.push(createPageBtn(pageActive - i + 1, isActive, onChangePage))
+        isActive = false;
+    }
+    array.push(createSpanDots());
+    array.push(createPageBtn(pageSize, isActive, onChangePage));
+    return array;
+}
+
+function paginationEnd(pageSize, pageActive, onChangePage) {
+    let array = [];
+    let isActive = false;
+    array.push(createSpanDots());
+    for (let i = 3; i >= 0; i--) {
+        if (pageSize - i === pageActive + 1) {
+            isActive = true;
+        }
+        array.push(createPageBtn(pageSize - i, isActive, onChangePage))
+        isActive = false;
+    }
+    
+    return array;
+}
+
+
+
+
+export function createPagination(paginationData, onChangePage) {
+    const paginationList = document.getElementById("paginationList");
+    paginationList.innerHTML = "";
+    const liPrevious = createPreviousBtn(paginationData.page, onChangePage);
+    const liNext = createNextBtn(paginationData.page, onChangePage);
+    
+    if (paginationData.first === true) {
+        liPrevious.classList.add("disabled");
+    } else {
+        liPrevious.classList.remove("disabled");
+    }
+    
+    if (paginationData.last === true) {
+        liNext.classList.add("disabled");
+    } else {
+        liNext.classList.remove("disabled");
+    }
+
+    paginationList.appendChild(liPrevious);
+
+    let array = [];
+    if (paginationData.totalPages <= 4) {
+        array = paginationSmall(paginationData.totalPages, paginationData.page, onChangePage);
+        console.log("12A4");
+    }
+
+    if (paginationData.totalPages > 4) {
+
+        if (paginationData.page < 3) {
+            array = paginationInitial(paginationData.totalPages, paginationData.page, onChangePage);
+            console.log("12A...5");
+        }
+
+        if (paginationData.page >= 3 && paginationData.page + 1 < paginationData.totalPages -2) {
+            array = paginationMiddle(paginationData.totalPages, paginationData.page, onChangePage);
+            console.log("..23A..5");
+        }
+
+        if (paginationData.page + 1 >= paginationData.totalPages -2) {
+            array = paginationEnd(paginationData.totalPages, paginationData.page, onChangePage);
+            console.log("... 2 3 4 4");
+        }
+    }
+    
+    for (let i = 0; i < array.length; i++) {
+        paginationList.appendChild(array[i]);
+    }
+
+    paginationList.appendChild(liNext);                        
+}
+
+export function showUsername(user) {
+    const usernameBtn = document.getElementById("btnUsername");
+    usernameBtn.innerText = user.username;
+}
+
+export function setupUserEvents(user) {
+    const btnEditProfile = document.getElementById("btnEditProfile");
+    const inputEmail = document.getElementById("inputEmail");
+
+    btnEditProfile.addEventListener("click", () => {
+        inputEmail.value = user.email;
+    });
 }

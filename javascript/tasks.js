@@ -1,13 +1,22 @@
 import { apiRequest } from "./api.js";
+import { logout } from "./logout.js";
 import { initAuth } from "./initAuth.js";
+import { paginationState, paginationItemsState } from "./config.js";
 import { hideModal,
+    showUsername,
     openAccordion, 
     clearListTask, 
     showContentApp,
     createListTask,
-    createListSubTask } from "./ui.js";
+    createSentinel,
+    setupUserEvents,
+    createPagination,
+    createListSubTask,
+    hideMoreSubTasksBtn } from "./ui.js";
 
 export async function initTasks() {
+
+    let currentUser = null;
 
     const isAuthenticated = await initAuth();
     if (!isAuthenticated) {
@@ -16,29 +25,49 @@ export async function initTasks() {
     }
 
     showContentApp();
-    loadTasks(0, 10);
+    //const user = await loadUser();
+    //showUsername(user);
+    initUser();
+    loadTasks(paginationState.page, paginationState.size);
 
+    async function initUser() {
+        try {
+            const response = await apiRequest(`/users/me`,
+                "GET"
+            );
+
+            showUsername(response);
+            setupUserEvents(response);
+
+            return response;
+        } catch (error) {
+            console.error("ERROR");
+            throw error;
+        }
+    }
+    
     async function loadTasks(page, size, search) {
         try {
             let response;
             if (search) {
                 response = await apiRequest(
-                        `/tasks/name?name=${search}&page=${page}&size=${size}`, 
-                        "GET"
-                    );
+                    `/tasks/name?name=${search}&page=${page}&size=${size}`, 
+                    "GET"
+                );
             } else {
                 response = await apiRequest(
-                        `/tasks?page=${page}&size=${size}`, 
-                        "GET"
-                    );
+                    `/tasks?page=${page}&size=${size}`, 
+                    "GET"
+                );
             }
             clearListTask();
             
             for (let i = 0; i < response.content.length; i++) {
-                createListTask(response.content[i], loadSubTasks, completeTask);
-            
+                createListTask(response.content[i], loadSubTasks, updateTask);
+                
             }
             
+            createPagination(response, changePage);
         } catch (error) {
             console.error("Error loading tasks:", error);//MODIFICAR PARA MOSTRAR ERROR EN UI
         }
@@ -57,7 +86,8 @@ export async function initTasks() {
                     { name: newTask }
                 );
 
-                createListTask(response, loadSubTasks, completeTask, true);
+                createListTask(response, loadSubTasks, updateTask, true);
+                inputNewTask.value = "";
             } catch (error) {
                 console.log("ERROR");
             }
@@ -66,17 +96,22 @@ export async function initTasks() {
 
     async function loadSubTasks(container, taskId) {
         try {
+            paginationItemsState.page = 0;
+            paginationItemsState.size = 5;
             const response = await apiRequest(
-                `/tasks/${taskId}/items`, 
+                `/tasks/${taskId}/items?page=${paginationItemsState.page}&size=${paginationItemsState.size}`, 
                 "GET"
-            );
+            );//`/tasks/${taskId}/items?page=${pageSubTask}&size=${sizeSubTask}`,
 
             if (response.content.length === 0) {
                 container.innerHTML = "Vacio";
             } else {
                 container.innerHTML = "";
                 for (let i = 0; i < response.content.length; i++) {
-                    createListSubTask(container, taskId, response.content[i], completeSubTask);
+                    createListSubTask(container, taskId, response.content[i], updateSubTask, deleteSubTask);
+                }
+                if (!response.last) {
+                    createSentinel(container, taskId, loadMoreSubTasks);
                 }
             }
 
@@ -85,12 +120,37 @@ export async function initTasks() {
         }
     }
 
-    async function completeTask(taskId, completed) {
+    async function loadMoreSubTasks(container, taskId) {
+        try {
+            paginationItemsState.page += 1;
+            const response = await apiRequest(
+                `/tasks/${taskId}/items?page=${paginationItemsState.page}&size=${paginationItemsState.size}`, 
+                "GET"
+            );
+
+            for (let i = 0; i < response.content.length; i++) {
+                createListSubTask(container, taskId, response.content[i], updateSubTask, deleteSubTask, true);
+            }
+
+            if (response.last) {
+                hideMoreSubTasksBtn(taskId);
+            }
+        } catch (error) {
+            console.error("Error loading subtasks:", error);//MODIFICAR PARA MOSTRAR ERROR EN UI
+        }
+    }
+
+
+
+    async function updateTask(taskId, name, completed) {
+        let update;
+        if (name !== null) update = { name: name };
+        if (completed !== null) update = { completed: completed};
         try {
             await apiRequest(
                 `/tasks/${taskId}`,
                 "PATCH",
-                { completed }
+                update
             );
             return true;
         } catch (error) {
@@ -99,13 +159,29 @@ export async function initTasks() {
         }
     }
 
-    async function completeSubTask(taskId, subtaskId, completed) {
+    async function updateSubTask(taskId, subTaskId, name, completed) {
+        let update;
+        if (name !== null) update = { name: name };
+        if (completed !== null) update = { completed: completed};
         try {
             await apiRequest(
-                `/tasks/${taskId}/items/${subtaskId}`,
+                `/tasks/${taskId}/items/${subTaskId}`,
                 "PATCH",
-                { completed }
+                update
             );
+            return true;
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+    }
+
+    async function deleteSubTask(taskId, subTaskId) {
+        try {
+            apiRequest(
+                `/tasks/${taskId}/items/${subTaskId}`,
+                "DELETE"
+            )
             return true;
         } catch (error) {
             console.error(error);
@@ -122,9 +198,9 @@ export async function initTasks() {
             let search = inputSearch.value.toLowerCase().trim();
 
             if (search) {
-                loadTasks(0, 10, search);
+                loadTasks(paginationState.page, paginationState.size, search);
             } else {
-                loadTasks(0, 10);
+                loadTasks(paginationState.page, paginationState.size);
             }
         }, 400);
     });
@@ -154,7 +230,7 @@ export async function initTasks() {
                     container.innerHTML = "";
                 }
 
-                createListSubTask(container, taskId, response, completeSubTask);
+                createListSubTask(container, taskId, response, updateSubTask, deleteSubTask);
 
                 openAccordion(accordionId);
             } catch (error) {
@@ -177,14 +253,52 @@ export async function initTasks() {
             let search = inputSearch.value.toLowerCase().trim();
 
             if (search) {
-                loadTasks(0, 10, search);
+                loadTasks(paginationState.page, paginationState.size, search);
             } else {
-                loadTasks(0, 10);
+                loadTasks(paginationState.page, paginationState.size);
             }
 
         } catch (error) {
             console.error(error);
         }
+    });
+
+    function changePage(page) {
+        paginationState.page = page;
+        let search = inputSearch.value.toLowerCase().trim();
+
+            if (search) {
+                loadTasks(paginationState.page, paginationState.size, search);
+            } else {
+                loadTasks(paginationState.page, paginationState.size);
+            }
+        
+    }
+
+    const btnConfirmDeleteAccount = document.getElementById("btnConfirmDeleteAccount");
+    btnConfirmDeleteAccount.addEventListener("click", async () => {
+        const inputConfirmDeleteAccount = document.getElementById("inputConfirmDeleteAccount");
+        const confirmDelete = inputConfirmDeleteAccount.value.trim().toLowerCase();
+
+        if (confirmDelete === "eliminar") {
+            try {
+                await apiRequest(
+                    `/users/me`, 
+                    "DELETE"
+                );
+
+                localStorage.removeItem("tokenTodoList");
+                localStorage.removeItem("refreshTokenTodoList");
+                window.location.replace("./index.html");
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    });
+
+    const btnLogout = document.getElementById("btnLogout");
+    btnLogout.addEventListener("click", () => {
+        logout();
     });
 
 }
