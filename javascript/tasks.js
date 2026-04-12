@@ -3,6 +3,7 @@ import { logout } from "./logout.js";
 import { initAuth } from "./initAuth.js";
 import { paginationState, paginationItemsState } from "./config.js";
 import { hideModal,
+    showErrorAPI,
     showUsername,
     openAccordion, 
     clearListTask, 
@@ -12,6 +13,7 @@ import { hideModal,
     setupUserEvents,
     createPagination,
     createListSubTask,
+    printConsoleError,
     addSubTaskToCount,
     hideMoreSubTasksBtn } from "./ui.js";
 
@@ -38,7 +40,8 @@ export async function initTasks() {
 
             return response;
         } catch (error) {
-            console.error("ERROR");
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
             throw error;
         }
     }
@@ -67,7 +70,9 @@ export async function initTasks() {
             
             createPagination(response, changePage);
         } catch (error) {
-            console.error("Error loading tasks:", error);//MODIFICAR PARA MOSTRAR ERROR EN UI
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
+            printConsoleError(error);
         }
     }
     
@@ -87,7 +92,9 @@ export async function initTasks() {
                 createListTask(response, loadSubTasks, updateTask, true);
                 inputNewTask.value = "";
             } catch (error) {
-                console.log("ERROR");
+                const time = new Date(error.timestamp).toLocaleString();
+                showErrorAPI(error.error, error.message, time);
+                printConsoleError(error);
             }
         }
     });
@@ -116,7 +123,9 @@ export async function initTasks() {
             }
 
         } catch (error) {
-            console.error("Error loading subtasks:", error);//MODIFICAR PARA MOSTRAR ERROR EN UI
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
+            printConsoleError(error);
         }
     }
 
@@ -137,7 +146,9 @@ export async function initTasks() {
                 hideMoreSubTasksBtn(taskId);
             }
         } catch (error) {
-            console.error("Error loading subtasks:", error);//MODIFICAR PARA MOSTRAR ERROR EN UI
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
+            printConsoleError(error);
         }
     }
 
@@ -157,7 +168,9 @@ export async function initTasks() {
 
             return true;
         } catch (error) {
-            console.error(error);
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
+            printConsoleError(error);
             return false;
         }
     }
@@ -178,7 +191,9 @@ export async function initTasks() {
 
             return true;
         } catch (error) {
-            console.error(error);
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
+            printConsoleError(error);
             return false;
         }
     }
@@ -191,7 +206,9 @@ export async function initTasks() {
             )
             return true;
         } catch (error) {
-            console.error(error);
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
+            printConsoleError(error);
             return false;
         }
     }
@@ -242,7 +259,9 @@ export async function initTasks() {
                 openAccordion(accordionId);
                 addSubTaskToCount(taskId);
             } catch (error) {
-                console.error(error);
+                const time = new Date(error.timestamp).toLocaleString();
+                showErrorAPI(error.error, error.message, time);
+                printConsoleError(error);
             }
         }
     });
@@ -267,7 +286,9 @@ export async function initTasks() {
             }
 
         } catch (error) {
-            console.error(error);
+            const time = new Date(error.timestamp).toLocaleString();
+            showErrorAPI(error.error, error.message, time);
+            printConsoleError(error);
         }
     });
 
@@ -298,7 +319,9 @@ export async function initTasks() {
                 localStorage.removeItem("refreshTokenTodoList");
                 window.location.replace("./index.html");
             } catch (error) {
-                console.error(error);
+                const time = new Date(error.timestamp).toLocaleString();
+                showErrorAPI(error.error, error.message, time);
+                printConsoleError(error);
             }
         }
     });

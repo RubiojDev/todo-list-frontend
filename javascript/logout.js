@@ -1,4 +1,5 @@
 import { BASE_URL } from "./config.js";
+import { showErrorAPI, printConsoleError } from "./utils.js";
 
 export async function logout() {
     const refreshToken = localStorage.getItem("refreshTokenTodoList");
@@ -14,7 +15,9 @@ export async function logout() {
             });
         }
     } catch (error) {
-        console.error("Logout error", error);
+        const time = new Date(error.timestamp).toLocaleString();
+        showErrorAPI(error.error, error.message, time);
+        printConsoleError(error);
     } finally {
         localStorage.removeItem("tokenTodoList");
         localStorage.removeItem("refreshTokenTodoList");

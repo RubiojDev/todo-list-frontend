@@ -104,7 +104,7 @@ export function createListTask(task, onLoadSubTasks, onUpdateTask, isNew = false
     divGroup.classList.add("input-group");
     
     const badge = document.createElement("span");
-    const count = task.pendingSubTasks;
+    const count = task.pendingSubTasks || 0;
     badge.classList.add("badge", "text-bg-secondary");
     badge.id = "badge-" + task.id;
     badge.textContent = count;
@@ -181,7 +181,6 @@ export function createListTask(task, onLoadSubTasks, onUpdateTask, isNew = false
     btnNewSubTask.title = "Nueva SubTarea";
 
     btnNewSubTask.addEventListener("click", () => {
-        console.log("NEW SUBTASK");
         const btnSaveNewSubTask = document.getElementById("btnSaveNewSubTask");
         btnSaveNewSubTask.setAttribute("data-id", task.id);
         btnSaveNewSubTask.setAttribute("data-cont-id", divAccordionBody.id);
@@ -207,7 +206,6 @@ export function createListTask(task, onLoadSubTasks, onUpdateTask, isNew = false
         const isCompleted = inputTask.classList.contains("text-decoration-line-through");
 
         const result = await onUpdateTask(task.id, null, !isCompleted);
-console.log("completed");
         if (result) {
             inputTask.classList.toggle("text-decoration-line-through");
         }
@@ -227,7 +225,6 @@ console.log("completed");
     btnDeleteTask.title = "Eliminar";
 
     btnDeleteTask.addEventListener("click", () => {
-        console.log("DELETE SUBTASK");
         const btnConfirmDeleteTask = document.getElementById("btnConfirmDeleteTask");
         const taskName = document.getElementById("taskNameModalDelete");
         btnConfirmDeleteTask.setAttribute("data-id", task.id);
@@ -411,7 +408,6 @@ export function createSentinel(container, taskId, onLoadMoreSubTasks, ) {
     container.appendChild(moreSubTasksBtn);
 
     moreSubTasksBtn.addEventListener("click", () => {
-        console.log("SI");
         onLoadMoreSubTasks(container, taskId);
     });
 
@@ -431,7 +427,6 @@ function createPreviousBtn(pageActive, onChangePage) {
     btnPrevius.innerHTML = "Previus";
 
     btnPrevius.addEventListener("click", () => {
-        console.log(pageActive - 1);
         onChangePage(pageActive - 1);
     });
 
@@ -449,7 +444,6 @@ function createNextBtn(pageActive, onChangePage) {
     btnNext.innerHTML = "Next";
 
     btnNext.addEventListener("click", () => {
-        console.log(pageActive + 1);
         onChangePage(pageActive + 1);
     });
 
@@ -468,7 +462,6 @@ function createPageBtn(page, isActive = false, onChangePage) {
     liPage.appendChild(btnPage);
 
     btnPage.addEventListener("click", () => {
-        console.log(page - 1);
         onChangePage(page - 1);
     });
 
@@ -573,24 +566,20 @@ export function createPagination(paginationData, onChangePage) {
     let array = [];
     if (paginationData.totalPages <= 4) {
         array = paginationSmall(paginationData.totalPages, paginationData.page, onChangePage);
-        console.log("12A4");
     }
 
     if (paginationData.totalPages > 4) {
 
         if (paginationData.page < 3) {
             array = paginationInitial(paginationData.totalPages, paginationData.page, onChangePage);
-            console.log("12A...5");
         }
 
         if (paginationData.page >= 3 && paginationData.page + 1 < paginationData.totalPages -2) {
             array = paginationMiddle(paginationData.totalPages, paginationData.page, onChangePage);
-            console.log("..23A..5");
         }
 
         if (paginationData.page + 1 >= paginationData.totalPages -2) {
             array = paginationEnd(paginationData.totalPages, paginationData.page, onChangePage);
-            console.log("... 2 3 4 4");
         }
     }
     
@@ -613,4 +602,18 @@ export function setupUserEvents(user) {
     btnEditProfile.addEventListener("click", () => {
         inputEmail.value = user.email;
     });
+}
+
+export function showErrorAPI(title, message, time) {
+  const toastEl = document.getElementById("toast");
+  const titleEl = document.getElementById("toastTitle");
+  const messageEl = document.getElementById("toastMessage");
+  const timeEl = document.getElementById("toastTime");
+
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  timeEl.textContent = time;
+
+  const toast = new bootstrap.Toast(toastEl);
+  toast.show();
 }
