@@ -104,8 +104,9 @@ export function createListTask(task, onLoadSubTasks, onUpdateTask, isNew = false
     divGroup.classList.add("input-group");
     
     const badge = document.createElement("span");
-    const count = 0;
+    const count = task.pendingSubTasks;
     badge.classList.add("badge", "text-bg-secondary");
+    badge.id = "badge-" + task.id;
     badge.textContent = count;
     if (count === 0) {
         badge.classList.add("text-bg-success");
@@ -162,9 +163,6 @@ export function createListTask(task, onLoadSubTasks, onUpdateTask, isNew = false
     divAccordionColapse.addEventListener("shown.bs.collapse", () => {
         divAccordionBody.innerHTML = "Cargando...";
         onLoadSubTasks(divAccordionBody, task.id);
-        
-        //createSentinel(divAccordionBody);
-///DSFFFFFFFFFFFFFFFFFFFFF
     });
     
 
@@ -203,7 +201,6 @@ export function createListTask(task, onLoadSubTasks, onUpdateTask, isNew = false
     const btnCompleteTask = document.createElement("button");
     btnCompleteTask.type = "button";
     btnCompleteTask.classList.add("btn", "btn-success");
-    //btnCompleteTask.id = "btnCompleteTask";
     btnCompleteTask.title = "Completado";
 
     btnCompleteTask.addEventListener("click", async () => {
@@ -320,8 +317,11 @@ export function createListSubTask(container, taskId, subTask, onUpdateSubTask, o
         const result = await onUpdateSubTask(taskId, subTask.id, null, e.target.checked);
         if (result) {
             inputSubTask.classList.toggle("text-strike");
+            modifyCountSubTask(inputCheckbox, taskId);
         }
     });
+
+
 
     const btnDeleteSubTask = document.createElement("button");
     btnDeleteSubTask.type = "button";
@@ -332,6 +332,7 @@ export function createListSubTask(container, taskId, subTask, onUpdateSubTask, o
         const result = await onDeleteSubTask(taskId, subTask.id);
         if (result) {
             divInputGroup.remove();
+            modifyCountSubTask(inputCheckbox, taskId, true);
         }
     });
 
@@ -349,6 +350,56 @@ export function createListSubTask(container, taskId, subTask, onUpdateSubTask, o
     }
 }
 
+function modifyCountSubTask(checkbox, taskId, isDelete = false) {
+    const badge = document.getElementById("badge-" + taskId);
+
+    let count = parseInt(badge.textContent) || 0;
+
+    if (isDelete) {
+        if (!checkbox.checked) {
+            count--;
+        }
+    } else {
+        if (checkbox.checked) {
+            count--;
+        } else {
+            count++;
+        }
+    }
+
+    // evitar negativos
+    count = Math.max(0, count);
+
+    badge.textContent = count;
+
+    updateBadgeUI(badge, count);
+}
+
+export function addSubTaskToCount(taskId) {
+    const badge = document.getElementById("badge-" + taskId);
+
+    let count = parseInt(badge.textContent) || 0;
+
+    count++;
+
+    badge.textContent = count;
+
+    // actualizar estilo
+    updateBadgeUI(badge, count)
+}
+
+function updateBadgeUI(badge, count) {
+    badge.textContent = count;
+
+    if (count === 0) {
+        badge.classList.add("text-bg-success");
+        badge.classList.remove("text-bg-secondary");
+    } else {
+        badge.classList.add("text-bg-secondary");
+        badge.classList.remove("text-bg-success");
+    }
+}
+
 
 
 export function createSentinel(container, taskId, onLoadMoreSubTasks, ) {
@@ -358,7 +409,6 @@ export function createSentinel(container, taskId, onLoadMoreSubTasks, ) {
     moreSubTasksBtn.classList.add("btn", "btn-outline-primary", "btn-sm");
     moreSubTasksBtn.innerHTML = "Ver mas...";
     container.appendChild(moreSubTasksBtn);
-    //return moreSubTasksBtn;
 
     moreSubTasksBtn.addEventListener("click", () => {
         console.log("SI");

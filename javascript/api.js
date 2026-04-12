@@ -1,5 +1,5 @@
 import { logout } from "./logout.js";
-const BASE_URL = "http://localhost:8080/api";
+import { BASE_URL } from "./config.js";
 
 export async function apiRequest(endpoint, method = "GET", data = null, requiresAuth = true) {
     let token = localStorage.getItem("tokenTodoList");
@@ -26,7 +26,7 @@ export async function apiRequest(endpoint, method = "GET", data = null, requires
 
     let response = await makeRequest();
 
-    // 🔥 Si expiró el token
+    // Si expiró el token
     if (response.status === 401 && refreshToken) {
         try {
             const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
@@ -45,7 +45,7 @@ export async function apiRequest(endpoint, method = "GET", data = null, requires
             localStorage.setItem("tokenTodoList", refreshData.token);
             localStorage.setItem("refreshTokenTodoList", refreshData.refreshToken);
 
-            // 🔁 Reintentar request original con nuevo token
+            // Reintentar request original con nuevo token
             response = await makeRequest(refreshData.token);
 
         }catch (e) {

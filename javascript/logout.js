@@ -1,9 +1,11 @@
+import { BASE_URL } from "./config.js";
+
 export async function logout() {
     const refreshToken = localStorage.getItem("refreshTokenTodoList");
 
     try {
         if (refreshToken) {
-            await fetch("http://localhost:8080/api/auth/logout", {
+            await fetch(`${BASE_URL}/auth/logout`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

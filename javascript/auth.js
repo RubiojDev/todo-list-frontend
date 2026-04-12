@@ -13,12 +13,12 @@ import {
 
 export async function initLogin() {
     
-    
     const isAuthenticated = await initAuth();
     if (isAuthenticated) {
         window.location.replace("./tasks.html");
         return;
     }
+
     showContentApp();
 
     const form = document.getElementById("loginForm");
@@ -74,12 +74,12 @@ export async function initLogin() {
 
 export async function initRegister() {
     
-    
     const isAuthenticated = await initAuth();
     if (isAuthenticated) {
         window.location.replace("./tasks.html");
         return;
     }
+
     showContentApp();
     
     const form = document.getElementById("registerForm");
@@ -160,15 +160,15 @@ export async function initRegister() {
 }
 
 function isValidEmail(input) {
-        return input.checkValidity();
-    }
+    return input.checkValidity();
+}
 
 function validateField(input, condition, message) {
-        if (condition) {
-            showError(input, message);
-            return false;
-        } else {
-            clearError(input);
-            return true;
-        }
+    if (condition) {
+        showError(input, message);
+        return false;
+    } else {
+        clearError(input);
+        return true;
     }
+}

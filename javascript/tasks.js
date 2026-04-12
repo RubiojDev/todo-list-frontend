@@ -12,11 +12,10 @@ import { hideModal,
     setupUserEvents,
     createPagination,
     createListSubTask,
+    addSubTaskToCount,
     hideMoreSubTasksBtn } from "./ui.js";
 
 export async function initTasks() {
-
-    let currentUser = null;
 
     const isAuthenticated = await initAuth();
     if (!isAuthenticated) {
@@ -25,8 +24,6 @@ export async function initTasks() {
     }
 
     showContentApp();
-    //const user = await loadUser();
-    //showUsername(user);
     initUser();
     loadTasks(paginationState.page, paginationState.size);
 
@@ -49,6 +46,7 @@ export async function initTasks() {
     async function loadTasks(page, size, search) {
         try {
             let response;
+
             if (search) {
                 response = await apiRequest(
                     `/tasks/name?name=${search}&page=${page}&size=${size}`, 
@@ -60,11 +58,11 @@ export async function initTasks() {
                     "GET"
                 );
             }
+
             clearListTask();
             
             for (let i = 0; i < response.content.length; i++) {
                 createListTask(response.content[i], loadSubTasks, updateTask);
-                
             }
             
             createPagination(response, changePage);
@@ -101,15 +99,17 @@ export async function initTasks() {
             const response = await apiRequest(
                 `/tasks/${taskId}/items?page=${paginationItemsState.page}&size=${paginationItemsState.size}`, 
                 "GET"
-            );//`/tasks/${taskId}/items?page=${pageSubTask}&size=${sizeSubTask}`,
+            );
 
             if (response.content.length === 0) {
                 container.innerHTML = "Vacio";
             } else {
                 container.innerHTML = "";
+
                 for (let i = 0; i < response.content.length; i++) {
                     createListSubTask(container, taskId, response.content[i], updateSubTask, deleteSubTask);
                 }
+
                 if (!response.last) {
                     createSentinel(container, taskId, loadMoreSubTasks);
                 }
@@ -123,6 +123,7 @@ export async function initTasks() {
     async function loadMoreSubTasks(container, taskId) {
         try {
             paginationItemsState.page += 1;
+
             const response = await apiRequest(
                 `/tasks/${taskId}/items?page=${paginationItemsState.page}&size=${paginationItemsState.size}`, 
                 "GET"
@@ -140,18 +141,20 @@ export async function initTasks() {
         }
     }
 
-
-
     async function updateTask(taskId, name, completed) {
         let update;
+
         if (name !== null) update = { name: name };
+
         if (completed !== null) update = { completed: completed};
+
         try {
             await apiRequest(
                 `/tasks/${taskId}`,
                 "PATCH",
                 update
             );
+
             return true;
         } catch (error) {
             console.error(error);
@@ -161,14 +164,18 @@ export async function initTasks() {
 
     async function updateSubTask(taskId, subTaskId, name, completed) {
         let update;
+
         if (name !== null) update = { name: name };
+
         if (completed !== null) update = { completed: completed};
+
         try {
             await apiRequest(
                 `/tasks/${taskId}/items/${subTaskId}`,
                 "PATCH",
                 update
             );
+
             return true;
         } catch (error) {
             console.error(error);
@@ -189,8 +196,8 @@ export async function initTasks() {
         }
     }
 
-    const inputSearch = document.getElementById("search");
     let timeout;
+    const inputSearch = document.getElementById("search");
     inputSearch.addEventListener("input", () => {
         clearTimeout(timeout);
 
@@ -233,6 +240,7 @@ export async function initTasks() {
                 createListSubTask(container, taskId, response, updateSubTask, deleteSubTask);
 
                 openAccordion(accordionId);
+                addSubTaskToCount(taskId);
             } catch (error) {
                 console.error(error);
             }
@@ -267,12 +275,11 @@ export async function initTasks() {
         paginationState.page = page;
         let search = inputSearch.value.toLowerCase().trim();
 
-            if (search) {
-                loadTasks(paginationState.page, paginationState.size, search);
-            } else {
-                loadTasks(paginationState.page, paginationState.size);
-            }
-        
+        if (search) {
+            loadTasks(paginationState.page, paginationState.size, search);
+        } else {
+            loadTasks(paginationState.page, paginationState.size);
+        }
     }
 
     const btnConfirmDeleteAccount = document.getElementById("btnConfirmDeleteAccount");
