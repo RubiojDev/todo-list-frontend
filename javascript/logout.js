@@ -1,5 +1,5 @@
 import { BASE_URL } from "./config.js";
-import { showErrorAPI, printConsoleError } from "./utils.js";
+import { showErrorAPI, printConsoleError } from "./ui.js";
 
 export async function logout() {
     const refreshToken = localStorage.getItem("refreshTokenTodoList");
