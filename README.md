@@ -1,4 +1,4 @@
-# Todo List App (Frontend)
+# ![icon](/resources/icon/favicon-32.png) Todo List App (Frontend)
 
 Aplicación web que consume la Todo List API para gestionar tareas y subtareas con autenticación JWT.
 
